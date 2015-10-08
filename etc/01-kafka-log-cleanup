@@ -1,0 +1,2 @@
+#!/bin/sh
+find /var/log/kafka -type f -mtime +7 | xargs rm -rf

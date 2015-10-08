@@ -1,0 +1,40 @@
+#!/bin/sh
+set -e
+
+if [ -z "$ID" ]; then
+    ID=0
+fi
+
+if [ -z "$KAFKA_EXT_HOST" ]; then
+    KAFKA_EXT_HOST=$(cat /etc/hosts | head -n1 | awk '{print $1}')
+fi
+
+if [ -z "$KAFKA_EXT_PORT" ]; then
+    KAFKA_EXT_PORT=9092
+fi
+
+: ${ZOOKEEPER:?"is not set"}
+
+echo "[start] running as broker $ID on $KAFKA_EXT_HOST:$KAFKA_EXT_PORT connecting to ZooKeeper $ZOOKEEPER"
+
+# update kafka configuration with id, external host, port, and ZK connect
+sed -r -i "s/^(broker.id)=(.*)/\1=$ID/g" /opt/kafka/config/server.properties
+sed -r -i "s/^(advertised.host.name)=(.*)/\1=$KAFKA_EXT_HOST/g" /opt/kafka/config/server.properties
+sed -r -i "s/^(advertised.port)=(.*)/\1=$KAFKA_EXT_PORT/g" /opt/kafka/config/server.properties
+sed -r -i "s/^(zookeeper.connect)=(.*)/\1=$ZOOKEEPER/g" /opt/kafka/config/server.properties
+
+# set JMX opts
+if [ -z "$JMX_PORT" ]; then
+    JXM_PORT=7000
+fi
+
+KAFKA_JMX_OPTS="-Dcom.sun.management.jmxremote"
+KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Dcom.sun.management.jmxremote.authenticate=false"
+KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Dcom.sun.management.jmxremote.ssl=false"
+KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT"
+KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT"
+KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Djava.rmi.server.hostname=${JMX_HOST:-$KAFKA_EXT_HOST}"
+export KAFKA_JMX_OPTS
+
+# run supervisord
+supervisord -n -c /etc/supervisord.conf
