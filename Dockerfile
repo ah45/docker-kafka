@@ -23,7 +23,7 @@ RUN cd /tmp \
  && mkdir -p /data \
  # change default kafka log location
  && mkdir -p /var/log/kafka \
- && sed -r -i "s/^(kafka.logs.dir)=/\1=\/var\/log\/kafka/" /opt/kafka/config/log4j.properties
+ && sed -r -i "s/^(kafka.logs.dir)=.*$/\1=\/var\/log\/kafka/" /opt/kafka/config/log4j.properties
 
 # copy configuration files
 COPY etc/server.properties /opt/kafka/config/
