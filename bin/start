@@ -25,7 +25,7 @@ sed -r -i "s/^(zookeeper.connect)=(.*)/\1=$ZOOKEEPER/g" /opt/kafka/config/server
 
 # set JMX opts
 if [ -z "$JMX_PORT" ]; then
-    JXM_PORT=7000
+    JMX_PORT=7000
 fi
 
 KAFKA_JMX_OPTS="-Dcom.sun.management.jmxremote"
