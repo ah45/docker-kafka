@@ -20,10 +20,7 @@ RUN cd /tmp \
  && rm /tmp/*.tgz \
  && ln -s /opt/kafka_$KAFKA_SCALA-$KAFKA_VERSION /opt/kafka \
  # create data directory
- && mkdir -p /data \
- # change default kafka log location
- && mkdir -p /var/log/kafka \
- && sed -r -i "s/^(kafka.logs.dir)=.*$/\1=\/var\/log\/kafka/" /opt/kafka/config/log4j.properties
+ && mkdir -p /data
 
 # copy configuration files
 COPY etc/server.properties /opt/kafka/config/
@@ -40,6 +37,9 @@ ENV SERVICE_7000_NAME jmx
 
 # expose mount point for service data
 VOLUME /data
+
+# set default log location
+ENV LOG_DIR /var/log/kafka
 
 # setup runtime environment
 COPY etc/supervisor-kafka.conf /etc/supervisor/conf.d/
