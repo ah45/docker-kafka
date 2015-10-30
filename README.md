@@ -7,11 +7,14 @@ to exist but does none the less.
 Main features:
 
 * Uses the [production Kafka configuration settings][prod-conf]
+* Has the [log compaction][log-compact] cleaner enabled (using the
+  default settings)
 * Cleans up old application log files (older than 7 days)
 * Exposes a volume for data storage
 * Exposes JMX for monitoring/statistics gathering
 
 [prod-conf]: http://kafka.apache.org/documentation.html#prodconfig
+[log-compact]: http://kafka.apache.org/documentation.html#compaction
 
 ## Build
 
