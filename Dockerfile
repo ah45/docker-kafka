@@ -9,8 +9,8 @@ RUN cat /etc/apk/repositories | grep -E "v[0-9.]+/main" | sed -r -e s"/^/@testin
 
 # Install Kafka from official binary releases
 ENV APACHE_MIRROR http://mirror.ox.ac.uk/sites/rsync.apache.org
-ENV KAFKA_SCALA 2.10
-ENV KAFKA_VERSION 0.8.2.1
+ENV KAFKA_SCALA 2.11
+ENV KAFKA_VERSION 0.9.0.0
 
 RUN cd /tmp \
  # download and extract kafka binaries
