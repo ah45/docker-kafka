@@ -1,16 +1,16 @@
-FROM alpine:latest
+FROM anapsix/alpine-java:8u121b13_server-jre
 
 MAINTAINER Adam Harper <docker@adam-harper.com>
 
 # Update system and install java, supervisord, and cron
 RUN cat /etc/apk/repositories | grep -E "v[0-9.]+/main" | sed -r -e s"/^/@testing /g" -e "s/v[0-9.]+\/main/edge\/testing/g" >> /etc/apk/repositories \
- && apk add --update bash openjdk7-jre-base supervisor dcron@testing \
+ && apk add --update bash supervisor dcron@testing \
  && rm -rf /var/cache/apk/*
 
 # Install Kafka from official binary releases
 ENV APACHE_MIRROR http://mirror.ox.ac.uk/sites/rsync.apache.org
-ENV KAFKA_SCALA 2.11
-ENV KAFKA_VERSION 0.9.0.0
+ENV KAFKA_SCALA 2.12
+ENV KAFKA_VERSION 0.10.2.0
 
 RUN cd /tmp \
  # download and extract kafka binaries
