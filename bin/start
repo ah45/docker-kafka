@@ -5,18 +5,15 @@ if [ -z "$ID" ]; then
     ID=0
 fi
 
-if [ -z "$KAFKA_ADVERTISED_HOST_NAME" ]; then
-    KAFKA_ADVERTISED_HOST_NAME=$(cat /etc/hosts | head -n1 | awk '{print $1}')
-fi
-
-if [ -z "$KAFKA_ADVERTISED_PORT" ]; then
-    KAFKA_ADVERTISED_PORT=9092
+if [ -z "$EXT_HOST" ]; then
+    EXT_HOST=$(cat /etc/hosts | head -n1 | awk '{print $1}')
 fi
 
 : ${ZOOKEEPER:?"is not set"}
 
 sed -r -i "s/^(broker.id)=(.*)/\1=$ID/g" /opt/kafka/config/server.properties
 sed -r -i "s/^(zookeeper.connect)=(.*)/\1=$ZOOKEEPER/g" /opt/kafka/config/server.properties
+sed -r -i "s/^(advertised.listeners)=(.*)/\1=PLAINTEXT:\/\/$EXT_HOST:9092/g" /opt/kafka/config/server.properties
 
 for VAR in `env`; do
   if [[ $VAR =~ ^KAFKA_ && ! $VAR =~ ^KAFKA_(SCALA|VERSION) ]]; then
@@ -33,7 +30,7 @@ for VAR in `env`; do
   fi
 done
 
-echo "[start] running as broker $ID on $KAFKA_ADVERTISED_HOST_NAME:$KAFKA_ADVERTISED_PORT connecting to ZooKeeper $ZOOKEEPER"
+echo "[start] running as broker $ID connecting to ZooKeeper $ZOOKEEPER"
 
 # set JMX opts
 if [ -z "$JMX_PORT" ]; then
@@ -45,7 +42,7 @@ KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Dcom.sun.management.jmxremote.authenticate=fals
 KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Dcom.sun.management.jmxremote.ssl=false"
 KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT"
 KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT"
-KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Djava.rmi.server.hostname=${JMX_HOST:-$KAFKA_ADVERTISED_HOST_NAME}"
+KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Djava.rmi.server.hostname=${JMX_HOST:-$EXT_HOST}"
 export KAFKA_JMX_OPTS
 
 # run supervisord

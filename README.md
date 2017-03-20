@@ -6,15 +6,14 @@ to exist but does none the less.
 
 Main features:
 
-* Uses the [production Kafka configuration settings][prod-conf]
 * Has the [log compaction][log-compact] cleaner enabled (using the
   default settings)
+* Has topic creation enabled
 * Has topic deletion enabled
 * Cleans up old application log files (older than 7 days)
 * Exposes a volume for data storage
 * Exposes JMX for monitoring/statistics gathering
 
-[prod-conf]: http://kafka.apache.org/documentation.html#prodconfig
 [log-compact]: http://kafka.apache.org/documentation.html#compaction
 
 ## Build
@@ -38,10 +37,9 @@ are available.)
       --name kafka1 \
       --env ID=1 \
       --env ZOOKEEPER=zookeeper:2181 \
-      --env KAFKA_EXT_HOST=192.168.1.10 \
-      --env KAFKA_EXT_PORT=8000 \
+      --env EXT_HOST=192.168.1.10 \
       --env JMX_PORT=10000 \
-      -p 8000:9092 \
+      -p 9092:9092 \
       -p 10000:10000 \
       -v /tmp/kafka:/data \
       ah45/kafka
@@ -53,15 +51,30 @@ Required:
 * `ID` the broker ID to run as.
 * `ZOOKEEPER` the ZooKeeper connection string to use.
 
+Strongly recommended:
+
+* `EXT_HOST` the hostname/address to advertise as. This should be the
+  _external_ address clients will be connecting to. Defaults to the
+  container IP.
+
+  This is used to set the Kafka `advertised.listeners` will be set to
+  (to `PLAINTEXT://${EXT_HOST}:9092`) and the JMX address. Both settings
+  will be overridden by more specific variables if given
+  (`KAFKA_ADVERTISED_LISTENERS` and `JMX_HOST`, respectively.)
+
 Optional:
 
-* `KAFKA_EXT_HOST` the hostname/IP to advertise as. This should be the
-  _external_ IP clients will be connecting to. Defaults to the
-  container IP.
-* `KAFKA_EXT_PORT` the exposed port clients will connect to, defaults
-  to the same as the internal port (`9092`.)
+* `JMX_HOST` the hostname/address to expose JMX on.
 * `JMX_PORT` the port to expose for JMX connections, see the JMX
   section below for more details. Defaults to `7000`.
+
+## Kafka Configuration
+
+Any `KAFKA_*` environment variables will be used to set/override
+`server.properties` settings, just replace the `.`s in the property name
+with `_`s (e.g. `KAFKA_AUTO_CREATE_TOPICS_ENABLE=false` will result in
+`auto.create.topics.enable=false` being written to the
+`server.properties`.)
 
 ## Ports
 
@@ -96,21 +109,20 @@ There are really only two things to remember:
   port>`) _always_ keep them the same (`-p <jmx port>:<jmx port>`.)
 * JMX needs to know the _external_ IP clients will connect to.
 
-  By default the `KAFKA_EXT_HOST` value is also used as the JMX
-  hostname, if for some reason you need to specify a different value
-  then do so as a `JMX_HOST` env variable (`--env JMX_HOST=<jmx host
-  IP>`.)
+  By default the `EXT_HOST` value is also used as the JMX hostname, if
+  for some reason you need to specify a different value then do so as
+  a `JMX_HOST` env variable (`--env JMX_HOST=<jmx host IP>`.)
 
 So, you should have something like:
 
-    --env KAFKA_EXT_HOST=192.168.99.100 --env JMX_PORT=7000 -p 7000:7000
+    --env EXT_HOST=192.168.99.100 --env JMX_PORT=7000 -p 7000:7000
 
 … in your Docker `run` command and not anything like:
 
     -p 7000
     -p 32790:7000
     --env JMX_PORT=10000 -p 10000
-    --env KAFKA_EXT_HOST=127.0.0.1 --env JMX_PORT=8080 -p 8080
+    --env EXT_HOST=127.0.0.1 --env JMX_PORT=8080 -p 8080
 
 Providing you adhere to those two maxims everything should just work.
 
@@ -129,15 +141,15 @@ to the collector container as `--link <kafka container>:kafka1`.)
 
 ## References
 
-[ches/docker-kafka](https://github.com/ches/docker-kafka) which I
-should probably just use rather than maintaining my own very similar
-image.
+[wurstmeister/kafka-docker](https://github.com/wurstmeister/kafka-docker)
+for the primary inspiration and especially the use of `ENV` variables to
+override `server.properties`.
 
 [digital-wonderland/docker-kafka](https://github.com/digital-wonderland/docker-kafka)
 another very agreeable Kafka image.
 
 ## License
 
-Copyright © 2015 Adam Harper.
+Copyright © 2017 Adam Harper.
 
 This project is licensed under the terms of the MIT license.
