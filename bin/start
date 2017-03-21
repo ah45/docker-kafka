@@ -45,5 +45,4 @@ KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Dcom.sun.management.jmxremote.rmi.port=$JMX_POR
 KAFKA_JMX_OPTS="$KAFKA_JMX_OPTS -Djava.rmi.server.hostname=${JMX_HOST:-$EXT_HOST}"
 export KAFKA_JMX_OPTS
 
-# run supervisord
-supervisord -n -c /etc/supervisord.conf
+/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties

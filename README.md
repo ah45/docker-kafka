@@ -10,7 +10,7 @@ Main features:
   default settings)
 * Has topic creation enabled
 * Has topic deletion enabled
-* Cleans up old application log files (older than 7 days)
+* Logs everything to `stdout` and `stderr`
 * Exposes a volume for data storage
 * Exposes JMX for monitoring/statistics gathering
 
@@ -138,6 +138,16 @@ this one. If you were to do that you don't need to set the `JMX_PORT`
 (the default of 7000 should be fine) and should set `JMX_HOST` to the
 link name you'll use (e.g. `--env JMX_HOST=kafka1` if you'll link it
 to the collector container as `--link <kafka container>:kafka1`.)
+
+## Logging
+
+All of the Kafka logs are redirected to `stdout` and `stderr` rather
+than being logged to files. `WARN`ings and `ERROR`s are logged to
+`stderr` with everything else sent to `stdout`.
+
+The JVM garbage collection logs are still produced, per default Kafka
+configuration, and saved in `/var/log/kafkaServer-gc.log` but are
+rotated on a ten file/50MB per file basis.
 
 ## References
 

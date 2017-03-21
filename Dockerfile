@@ -2,11 +2,6 @@ FROM anapsix/alpine-java:8u121b13_server-jre
 
 MAINTAINER Adam Harper <docker@adam-harper.com>
 
-# Update system and install java, supervisord, and cron
-RUN cat /etc/apk/repositories | grep -E "v[0-9.]+/main" | sed -r -e s"/^/@testing /g" -e "s/v[0-9.]+\/main/edge\/testing/g" >> /etc/apk/repositories \
- && apk add --update bash supervisor dcron@testing \
- && rm -rf /var/cache/apk/*
-
 # Install Kafka from official binary releases
 ENV APACHE_MIRROR http://mirror.ox.ac.uk/sites/rsync.apache.org
 ENV KAFKA_SCALA 2.12
@@ -24,10 +19,7 @@ RUN cd /tmp \
 
 # copy configuration files
 COPY etc/server.properties /opt/kafka/config/
-
-# copy log file cleanup job
-COPY etc/01-kafka-log-cleanup /etc/periodic/daily/
-RUN chmod +x /etc/periodic/daily/01-kafka-log-cleanup
+COPY etc/log4j.properties /opt/kafka/config/
 
 # expose kafka and JMX
 EXPOSE 9092 7000
@@ -41,10 +33,10 @@ VOLUME /data
 # set default log location
 ENV LOG_DIR /var/log/kafka
 
+# keep some GC logs, but rotate them
+ENV KAFKA_GC_LOG_OPTS -Xloggc:/var/log/kafka/kafkaServer-gc.log -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=100M
+
 # setup runtime environment
-COPY etc/supervisor-kafka.conf /etc/supervisor/conf.d/
-COPY etc/supervisor-crond.conf /etc/supervisor/conf.d/
 COPY bin/* /usr/local/bin/
-RUN chmod +x /usr/local/bin/* \
- && echo "files = /etc/supervisor/conf.d/*.conf" >> /etc/supervisord.conf
+RUN chmod +x /usr/local/bin/*
 CMD ["/usr/local/bin/start", "", ""]
